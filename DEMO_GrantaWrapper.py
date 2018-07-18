@@ -1,4 +1,179 @@
+def Scalar_Data(session, dbKey, tableName):
+    session = session
+    dbKey = dbKey 
+    table = tableName
+    ##Create attribute references for the attributes you want to export and export data from all records.
 
+    i = input('Enter the number of attribute datas to be accessed: ')
+
+    attributes = [None]*i
+
+    for k in range(i):
+        attributes[k] = raw_input('Enter the attribute {0}: '.format(k+1))
+
+
+    attrRefs = [gdl.AttributeReference(name=a, DBKey=dbKey, partialTableReference=tableRef) for a in attributes]
+    recordRefs = [r.recordReference for r in searchResults]
+    request = gdl.GetRecordAttributesByRefRequest(recordReferences=recordRefs, attributeReferences=attrRefs)
+       
+    recordData = session.dataExportService.GetRecordAttributesByRef(request).recordData
+
+
+    ##Print the values of the attributes from the exported records
+    s = [None]*len(df3)
+    for attribute in attributes:
+        for idx, record in enumerate(recordData):
+            attrValue = next((x for x in record.attributeValues if x.attributeName == attribute), None)
+            s[idx] = attrValue.pointDataType.points[0].value if attrValue else None 
+        df3[attribute] = s
+    
+    print(df3)
+
+    print("\n")
+
+    n = input('Choose the index of the material record to be exported: \n')
+
+    value = df3.iloc[n,0] #Set to zero to get the Granta Material Name. What about the rest?
+    #FullData = gdl.GetRecordAttributesResponse(value)i
+    #FullData = session.dataExportService.GetRecordAttributesResponse(FullData).recordData
+    print(value)
+
+    print("\n")
+
+    #print(FullData)
+    print("\n")
+
+    #Getting the record by record name
+
+    req = gdl.RecordNameSearchRequest(
+        recordName=value, 
+        table=gdl.TableReference(DBKey=dbKey, name=table),
+        searchShortNames=True
+    )
+    resp = session.searchService.RecordNameSearch(req)
+    print("Found {0} record(s)".format(len(resp.searchResults)))
+    #print(resp.searchResults)
+    print("\n")
+
+    rec = resp.searchResults[0].recordReference
+    #print(rec)
+    print("\n")
+
+    #Getting all the applicable attributes for the record
+
+    #Looking up exporters for this record
+    request = gdl.ExportersForRecordsRequest(records=[rec])
+    resp = session.engineeringDataService.ExportersForRecords(request)
+    print("\nOutput of exporters for this material")
+    print("\n")
+
+    for  exporter in resp.records[0].exporters:
+        if exporter.name == 'MatML':
+            exporter2 = exporter
+        print("{0} ({1}) - {2}".format(exporter.name, 
+                                       exporter.package, 
+                                       exporter.description))
+    exporter2 = exporter
+    print("\n")
+
+    #List of parameters that can be exported
+    req = gdl.GetExporterParametersRequest(records=[rec], exporterKey=exporter2.key)
+    expParams = session.engineeringDataService.GetExporterParameters(req)
+    for attrib in expParams.records[0].attributes:
+        print(attrib.attribute.name)
+        for param in attrib.parameters:
+            print("\t" + param.name)
+    return
+
+def Graphical_Data(session, dbkey, tableName, recordName, attribName):
+    import GRANTA_MIScriptingToolkit as gdl
+    req = gdl.RecordNameSearchRequest(caseSensitiveNames=False, searchShortNames=True, recordName=recordName)
+    req.table = gdl.TableReference(DBKey=dbKey, name=tableName)
+    resp = session.searchService.RecordNameSearch(req)
+    record = resp.searchResults[0]
+    
+    browse = gdl.BrowseService(session.mi_session)
+    a = gdl.AttributeReference(name=attribName, partialTableReference = gdl.PartialTableReference(tableName=tableName),DBKey=dbKey)
+    resp = browse.GetAttributeDetails(gdl.GetAttributeDetailsRequest([a]))
+    
+    dataExportRequest = gdl.GetRecordAttributesByRefRequest(recordReferences=[record.recordReference], attributeReferences=[a])
+    dataExportResponse = session.dataExportService.GetRecordAttributesByRef(dataExportRequest)
+    myRecordData = dataExportResponse.recordData[0]
+    
+    value = myRecordData.attributeValues[0]
+    print("Attribute Name: {0.attributeName}, Type {0.dataType}".format(value))
+    
+    
+    
+    graph = value.floatFunctionalSeriesDataType.graph
+    series = graph.series
+    
+    curves = []
+#    i = 0;
+    for curve in series:
+        print(curve)
+        points = curve.XYPoints.XYPoints
+        print(points)
+#        i = i+1
+#        print(i)
+        x = [point.parameterValue.numericValue for point in points]
+        y = [point.Y for point in points]
+        curves.append([x,y])
+        print(curves)
+    
+    
+#
+    #Plot using matplotlib 
+
+    
+    import matplotlib.pyplot as plt
+  
+    xLabel = '{param.name} ({param.unit.unitSymbol})'.format(param = graph.XAxisParameter)
+    yLabel = attribName #Change with each thongy. 
+
+    plt.close()
+    plt.xlabel(xLabel)
+    plt.ylabel(yLabel)
+    plt.title(attribName)
+    print(x)
+    print(len(x))
+    print(len(y))
+    for curve in curves:
+        
+        plt.plot(curve[0], curve[1])
+        #plt.xlim([0, 1500])
+        #plt.legend()
+    #plt.xlim([0, 1500])
+    plt.show()
+
+    
+    
+    
+    
+    return
+
+def Text_Code (session, dbKey, tableName, attribName):
+    table = tableName
+    attribute = attribName
+    tableRef = gdl.PartialTableReference(tableName=table)
+    
+    attrRefs = [gdl.AttributeReference(name=a, DBKey=dbKey, partialTableReference=tableRef) for a in attributes]
+    recordRefs = [r.recordReference for r in searchResults]
+    request = gdl.GetRecordAttributesByRefRequest(recordReferences=recordRefs, attributeReferences=attrRefs)
+           
+    recordData = session.dataExportService.GetRecordAttributesByRef(request).recordData
+    
+    s = [None]*len(df2)
+    for attribute in attributes:
+        for idx, record in enumerate(recordData):
+            attrValue = next((x for x in record.attributeValues if x.attributeName == attribute), None)
+                s[idx] = attrValue.longTextDataType.value if attrValue else None
+
+        df2[attribute] = s
+        
+    print(df2)
+    df2.to_csv('file.csv', encoding='utf-8', index = 'False')
+return
 
 
 import GRANTA_MIScriptingToolkit as gdl
@@ -157,7 +332,9 @@ print("Attribute Name: {0.attributeName}, Type {0.dataType}".format(Value))
 #if (Value.dataType == "POIN") :
 #else if (Value.dataType == "TABL") :
 #else if (Value.dataType == "FLOAT_FUNCTIONAL_SERIES") :
+#       Graphical_Data(session, dbkey, tableName, recordName, attribName)
 #else if (Value.dataType == "LTXT") :
+#       Text_Code(session, dbKey, tableName, attribName)
 #else if (Value.dataType == "TABL") :
 #else if (Value.dataType == "TABL") :
 
