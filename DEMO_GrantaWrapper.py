@@ -156,7 +156,8 @@ def Text_Code (session, dbKey, tableName, attribName):
     table = tableName
     attribute = attribName
     tableRef = gdl.PartialTableReference(tableName=table)
-    
+    a = gdl.AttributeReference(name=attribName, partialTableReference=gdl.PartialTableReference(tableName=tableName), 
+                               DBKey=dbKey)
     attrRefs = [gdl.AttributeReference(name=a, DBKey=dbKey, partialTableReference=tableRef) for a in attributes]
     recordRefs = [r.recordReference for r in searchResults]
     request = gdl.GetRecordAttributesByRefRequest(recordReferences=recordRefs, attributeReferences=attrRefs)
@@ -175,6 +176,41 @@ def Text_Code (session, dbKey, tableName, attribName):
     df2.to_csv('file.csv', encoding='utf-8', index = 'False')
 return
 
+def Tabular_Data(session, dbKey, tableName, recordName, attribName):
+    req = gdl.RecordNameSearchRequest(caseSensitiveNames=False, searchShortNames=True, recordName=recordName)
+    req.table = gdl.TableReference(DBKey=dbKey, name=tableName)
+    resp = session.searchService.RecordNameSearch(req)
+    record = resp.searchResults[0]
+
+    browse = gdl.BrowseService(session.mi_session)
+    
+    a = gdl.AttributeReference(name=attribName, 
+                           partialTableReference=gdl.PartialTableReference(tableName=tableName), 
+                           DBKey=dbKey)
+
+    resp = browse.GetAttributeDetails(gdl.GetAttributeDetailsRequest([a]))
+    dataExportRequest  = gdl.GetRecordAttributesByRefRequest(recordReferences=[record.recordReference],
+                                                        attributeReferences=[a])
+    dataExportResponse = session.dataExportService.GetRecordAttributesByRef(dataExportRequest)
+    myRecordData = dataExportResponse.recordData
+    for rec in myRecordData:
+        for attr in rec.attributeValues:
+            if attr.attributeName == attribName:
+                if not attr.dataType == "TABL":
+                    raise TypeError("No tables found! Check your record.")
+                    myTable = attr.tabularDataType
+                    print("Table found.")
+    i = 1
+    myTable = attr.tabularDataType                
+    for det in myTable.columns:
+        print(det.name)
+
+    for row in myTable.tabularDataRows:
+#       print("Row {0}:".format(i+1))
+        print("\t{0}".format(row.cells[0].longTextDataValue.value))
+        print("\t{0}".format(row.cells[1].pointDataValue.points[0].value))
+        i=i+1
+return
 
 import GRANTA_MIScriptingToolkit as gdl
 import getpass
@@ -331,12 +367,12 @@ print("Attribute Name: {0.attributeName}, Type {0.dataType}".format(Value))
 
 #if (Value.dataType == "POIN") :
 #else if (Value.dataType == "TABL") :
+#       Tabular_Data(session, dbKey, tableName, recordName, attribName)
 #else if (Value.dataType == "FLOAT_FUNCTIONAL_SERIES") :
 #       Graphical_Data(session, dbkey, tableName, recordName, attribName)
 #else if (Value.dataType == "LTXT") :
 #       Text_Code(session, dbKey, tableName, attribName)
-#else if (Value.dataType == "TABL") :
-#else if (Value.dataType == "TABL") :
+
 
 
 
