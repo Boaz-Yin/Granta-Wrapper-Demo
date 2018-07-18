@@ -57,6 +57,7 @@ print("\n")
 
 
 ###########################################BROWSING OPTIONS ###############################################################
+
 print("Choose from the following Browsing Options:")
 print("1. Search Based on Material Name\n")
 print("2. Search Based on Existence of Property Value and then Choose a Material\n")
@@ -64,48 +65,51 @@ inp = raw_input("Enter the option number: ")
 inp = int(inp)
 
 
-
-if (inp == 1):
-    searchText = ('304 Steel')#raw_input('Enter the material name to be Browsed: ')
-
-    simpleTextSearch = gdl.SimpleTextSearch(searchValue=searchText, DBKey=dbKey)
-    simpleTextSearchResponse = session.searchService.SimpleTextSearch(simpleTextSearch).searchResults
-
-    ##Printing the simple text search response
-    #for result in simpleTextSearchResponse.searchResults:
-    #    print('{0}'.format(result.shortName))
-
-    df2 = pd.DataFrame({'Short Names': [result.shortName for result in simpleTextSearchResponse],
-                    'Long Names': [result.longName for result in simpleTextSearchResponse]})
-    print(df2)
-    print("\n")
-    i = raw_input("Enter the index number of record to be selected: ")
-    i = int(i)
-    print(i)
-    recordName = df2.loc[i][0]
-
-
-
-
-
-if (inp==2):
-####Searching a particular database for an attribute and then choose the material record
-
-    attribute = raw_input('Enter the attribute based off which you need to look up material records: ')
-
-    tableRef = gdl.PartialTableReference(tableName=table)
-    attrRef = gdl.AttributeReference(name=attribute, DBKey=dbKey, partialTableReference=tableRef)
-    searchCriterion = gdl.RecordSearchCriterion(searchAttribute=attrRef, existsSearchValue=gdl.ExistsSearchValue())
-    request = gdl.CriteriaSearch(DBKey=dbKey, searchCriteria=[searchCriterion])
-
-    searchResults = session.searchService.CriteriaSearch(request).searchResults
-
-    ###Printing Longname and short name 
-    df3 = pd.DataFrame({'ShortName': [r.shortName for r in searchResults],
-                    'LongName': [r.longName  for r in searchResults]})
-    print(df3)
-
-
+while inp != 1 or inp != 2:
+    if (inp == 1):
+        searchText = ('304 Steel')#raw_input('Enter the material name to be Browsed: ')
+    
+        simpleTextSearch = gdl.SimpleTextSearch(searchValue=searchText, DBKey=dbKey)
+        simpleTextSearchResponse = session.searchService.SimpleTextSearch(simpleTextSearch).searchResults
+    
+        ##Printing the simple text search response
+        #for result in simpleTextSearchResponse.searchResults:
+        #    print('{0}'.format(result.shortName))
+    
+        df2 = pd.DataFrame({'Short Names': [result.shortName for result in simpleTextSearchResponse],
+                        'Long Names': [result.longName for result in simpleTextSearchResponse]})
+        print(df2)
+        print("\n")
+        i = raw_input("Enter the index number of record to be selected: ")
+        i = int(i)
+        print(i)
+        recordName = df2.loc[i][0]
+        break
+    elif (inp==2):
+    ####Searching a particular database for an attribute and then choose the material record
+    
+        attribute = raw_input('Enter the attribute based off which you need to look up material records: ')
+    
+        tableRef = gdl.PartialTableReference(tableName=table)
+        attrRef = gdl.AttributeReference(name=attribute, DBKey=dbKey, partialTableReference=tableRef)
+        searchCriterion = gdl.RecordSearchCriterion(searchAttribute=attrRef, existsSearchValue=gdl.ExistsSearchValue())
+        request = gdl.CriteriaSearch(DBKey=dbKey, searchCriteria=[searchCriterion])
+    
+        searchResults = session.searchService.CriteriaSearch(request).searchResults
+    
+        ###Printing Longname and short name 
+        df3 = pd.DataFrame({'ShortName': [r.shortName for r in searchResults],
+                        'LongName': [r.longName  for r in searchResults]})
+        print(df3)
+        break
+    else:
+        print("Invalid Option!\n")
+        print("Choose from the following Browsing Options:")
+        print("1. Search Based on Material Name\n")
+        print("2. Search Based on Existence of Property Value and then Choose a Material\n")
+        inp = raw_input("Enter the option number: ")
+        inp = int(inp)
+    
 print("\n")
 
 
