@@ -75,7 +75,7 @@ while inp != 1 or inp != 2:
         ##Printing the simple text search response
         #for result in simpleTextSearchResponse.searchResults:
         #    print('{0}'.format(result.shortName))
-    
+        pd.options.display.max_colwidth = 100
         df2 = pd.DataFrame({'Short Names': [result.shortName for result in simpleTextSearchResponse],
                         'Long Names': [result.longName for result in simpleTextSearchResponse]})
         print(df2)
@@ -98,6 +98,7 @@ while inp != 1 or inp != 2:
         searchResults = session.searchService.CriteriaSearch(request).searchResults
     
         ###Printing Longname and short name 
+        pd.options.display.max_colwidth = 100
         df3 = pd.DataFrame({'ShortName': [r.shortName for r in searchResults],
                         'LongName': [r.longName  for r in searchResults]})
         print(df3)
@@ -137,7 +138,8 @@ record = resp.searchResults[0]
 
 export = "N"
 while export != "Y":
-    print('Available Attributes: \n1. Density\n2. Specific Heat with Temp.\n3. Residual Stress\n')
+
+    print('Available Attributes: \n1. Density\n2. Specific Heat with Temp.\n3. Residual Stress')
     print('4. Condition\n5. Crack Image\n6. Supplier Info\n7. In Service Crack\n')
     inp = int(raw_input("Enter the option number: "))
     if inp == 1:
@@ -154,6 +156,8 @@ while export != "Y":
         attribName = 'Supplier Info'
     elif inp == 7:
         attribName = 'In Service Crack'
+
+    
     #attribName = 'Density'
     #attribName = 'Specific Heat with Temp.'
     #attribName = 'Residual Stress'
